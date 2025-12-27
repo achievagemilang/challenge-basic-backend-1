@@ -1,14 +1,18 @@
 package model
 
 type WebResponse[T any] struct {
-	Data T `json:"data"`
+	Ok   bool `json:"ok"`
+	Data T    `json:"data"`
 }
 
 type ErrorResponse struct {
-	Errors string `json:"errors"`
+	Ok  bool   `json:"ok"`
+	Err string `json:"err"`
+	Msg string `json:"msg"`
 }
 
 type PageResponse[T any] struct {
+	Ok     bool         `json:"ok"`
 	Data   []T          `json:"data,omitempty"`
 	Paging PageMetadata `json:"paging,omitempty"`
 }

@@ -1,4 +1,4 @@
-.PHONY: run run-worker test dev docker-up docker-down docker-down-v swag migrate-up migrate-down migrate-reset migrate-create
+.PHONY: run run-worker test dev docker-up docker-down docker-down-v swag migrate-up migrate-down migrate-reset migrate-create test-coverage lint lint-fix
 
 # Run the web application
 run:
@@ -11,6 +11,9 @@ run-worker:
 # Run unit tests
 test:
 	go test -v ./test/...
+
+test-coverage:
+	go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
 # Run with Hot Reload (Air)
 dev:
@@ -46,3 +49,11 @@ migrate-reset:
 # Usage: make migrate-create name=create_table_users
 migrate-create:
 	migrate create -ext sql -dir db/migrations $(name)
+
+# Linting
+lint:
+	golangci-lint run
+
+lint-fix:
+	golangci-lint run --fix
+

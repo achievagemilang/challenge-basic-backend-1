@@ -1,0 +1,54 @@
+name: Go
+
+on:
+  push:
+    branches: ['main', 'master', 'dev']
+  pull_request:
+    branches: ['main', 'master', 'dev']
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: challenge_backend_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Create config.json
+        run: |
+          cp config.json.example config.json
+          # Replace port 54320 with 5432 for CI
+          sed -i 's/54320/5432/g' config.json
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+      - name: Run Migrations
+        run: migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/challenge_backend_db?sslmode=disable" up
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...

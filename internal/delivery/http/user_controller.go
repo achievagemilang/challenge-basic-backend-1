@@ -1,7 +1,6 @@
 package http
 
 import (
-	"challenge-backend-1/internal/delivery/http/middleware"
 	"challenge-backend-1/internal/model"
 	"challenge-backend-1/internal/usecase"
 
@@ -21,45 +20,17 @@ func NewUserController(useCase *usecase.UserUseCase, logger *zap.SugaredLogger) 
 	}
 }
 
-// Register godoc
-// @Summary Register new user
-// @Description Register new user
-// @Tags User API
-// @Accept json
-// @Produce json
-// @Param request body model.RegisterUserRequest true "Register User Request"
-// @Success 200 {object} model.WebResponse[model.UserResponse]
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
-// @Router /api/users [post]
-func (c *UserController) Register(ctx *fiber.Ctx) error {
-	request := new(model.RegisterUserRequest)
-	err := ctx.BodyParser(request)
-	if err != nil {
-		c.Log.Warnf("Failed to parse request body : %+v", err)
-		return fiber.ErrBadRequest
-	}
-
-	response, err := c.UseCase.Create(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Warnf("Failed to register user : %+v", err)
-		return err
-	}
-
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
-}
-
 // Login godoc
 // @Summary Login user
-// @Description Login user
+// @Description Login user with email and password
 // @Tags User API
 // @Accept json
 // @Produce json
 // @Param request body model.LoginUserRequest true "Login User Request"
-// @Success 200 {object} model.WebResponse[model.UserResponse]
-// @Failure 400 {object} model.ErrorResponse
+// @Success 200 {object} model.WebResponse[model.LoginResponse]
+// @Failure 401 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/users/_login [post]
+// @Router /session [post]
 func (c *UserController) Login(ctx *fiber.Ctx) error {
 	request := new(model.LoginUserRequest)
 	err := ctx.BodyParser(request)
@@ -74,90 +45,42 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.JSON(model.WebResponse[*model.LoginResponse]{
+		Ok:   true,
+		Data: response,
+	})
 }
 
-// Current godoc
-// @Summary Get current user
-// @Description Get current user
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Replace expired access_token with the new one
 // @Tags User API
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {object} model.WebResponse[model.UserResponse]
-// @Failure 400 {object} model.ErrorResponse
+// @Success 200 {object} model.WebResponse[model.LoginResponse]
+// @Failure 401 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/users/_current [get]
-func (c *UserController) Current(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-
-	request := &model.GetUserRequest{
-		ID: auth.ID,
+// @Router /session [put]
+func (c *UserController) Refresh(ctx *fiber.Ctx) error {
+	authHeader := ctx.Get("Authorization")
+	if authHeader == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "ERR_INVALID_REFRESH_TOKEN", "invalid refresh token")
 	}
 
-	response, err := c.UseCase.Current(ctx.UserContext(), request)
+	// "Bearer <token>"
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		return fiber.NewError(fiber.StatusUnauthorized, "ERR_INVALID_REFRESH_TOKEN", "invalid refresh token")
+	}
+	refreshToken := authHeader[7:]
+
+	response, err := c.UseCase.Refresh(ctx.UserContext(), refreshToken)
 	if err != nil {
-		c.Log.Errorw("Failed to get current user", "error", err)
 		return err
 	}
 
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
-}
-
-// Logout godoc
-// @Summary Logout user
-// @Description Logout user
-// @Tags User API
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Success 200 {object} model.WebResponse[bool]
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
-// @Router /api/users [delete]
-func (c *UserController) Logout(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-
-	request := &model.LogoutUserRequest{
-		ID: auth.ID,
-	}
-
-	response, err := c.UseCase.Logout(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Errorw("Failed to logout user", "error", err)
-		return err
-	}
-
-	return ctx.JSON(model.WebResponse[bool]{Data: response})
-}
-
-// Update godoc
-// @Summary Update user
-// @Description Update user
-// @Tags User API
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param request body model.UpdateUserRequest true "Update User Request"
-// @Success 200 {object} model.WebResponse[model.UserResponse]
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
-// @Router /api/users/_current [patch]
-func (c *UserController) Update(ctx *fiber.Ctx) error {
-	auth := middleware.GetUser(ctx)
-
-	request := new(model.UpdateUserRequest)
-	if err := ctx.BodyParser(request); err != nil {
-		c.Log.Warnf("Failed to parse request body : %+v", err)
-		return fiber.ErrBadRequest
-	}
-
-	request.ID = auth.ID
-	response, err := c.UseCase.Update(ctx.UserContext(), request)
-	if err != nil {
-		c.Log.Errorw("Failed to update user", "error", err)
-		return err
-	}
-
-	return ctx.JSON(model.WebResponse[*model.UserResponse]{Data: response})
+	return ctx.JSON(model.WebResponse[*model.LoginResponse]{
+		Ok:   true,
+		Data: response,
+	})
 }

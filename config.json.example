@@ -3,6 +3,9 @@
     "name": "challenge-backend-1",
     "api_key": "will-be-overwritten-by-env"
   },
+  "jwt": {
+    "secret": "some-secret"
+  },
   "web": {
     "prefork": false,
     "port": 8080
