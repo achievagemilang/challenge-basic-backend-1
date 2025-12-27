@@ -13,6 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
@@ -67,7 +68,7 @@ func TestUserUseCase_Login(t *testing.T) {
 			})
 
 		mockToken.EXPECT().GenerateAccessToken(user).Return("access_token", nil)
-		mockToken.EXPECT().GenerateRefreshToken().Return("refresh_token", nil)
+		mockToken.EXPECT().GenerateRefreshToken(user).Return("refresh_token", nil)
 
 		req := &model.LoginUserRequest{
 			Email:    "test@example.com",
@@ -167,5 +168,75 @@ func TestUserUseCase_Login(t *testing.T) {
 		if errors.As(err, &fiberErr) {
 			assert.Equal(t, fiber.StatusInternalServerError, fiberErr.Code)
 		}
+	})
+}
+
+func TestUserUseCase_Refresh(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockUserRepository(ctrl)
+	mockProducer := mocks.NewMockUserProducer(ctrl)
+	mockToken := mocks.NewMockTokenProvider(ctrl)
+
+	db, _, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	dialector := postgres.New(postgres.Config{
+		Conn:       db,
+		DriverName: "postgres",
+	})
+	gormDB, err := gorm.Open(dialector, &gorm.Config{})
+	assert.NoError(t, err)
+
+	logger := zap.NewNop().Sugar()
+	validate := validator.New()
+
+	uc := usecase.NewUserUseCase(gormDB, logger, validate, mockRepo, mockProducer, mockToken)
+
+	t.Run("Success", func(t *testing.T) {
+		refreshToken := "valid_refresh_token"
+		claims := jwt.MapClaims{
+			"sub":  float64(1),
+			"type": "refresh",
+		}
+		user := &entity.User{ID: 1}
+
+		mockToken.EXPECT().ValidateToken(refreshToken).Return(&claims, nil)
+		mockRepo.EXPECT().FindById(gomock.Any(), gomock.Any(), int64(1)).DoAndReturn(func(db *gorm.DB, u *entity.User, id any) error {
+			*u = *user
+			return nil
+		})
+		mockToken.EXPECT().GenerateAccessToken(user).Return("new_access_token", nil)
+
+		resp, err := uc.Refresh(context.Background(), refreshToken)
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "new_access_token", resp.AccessToken)
+	})
+
+	t.Run("InvalidToken", func(t *testing.T) {
+		refreshToken := "invalid_token"
+
+		mockToken.EXPECT().ValidateToken(refreshToken).Return(nil, errors.New("invalid"))
+
+		resp, err := uc.Refresh(context.Background(), refreshToken)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("InvalidTokenType", func(t *testing.T) {
+		refreshToken := "invalid_type_token"
+		claims := jwt.MapClaims{
+			"sub":  float64(1),
+			"type": "access", // Incorrect type
+		}
+
+		mockToken.EXPECT().ValidateToken(refreshToken).Return(&claims, nil)
+
+		resp, err := uc.Refresh(context.Background(), refreshToken)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
 	})
 }

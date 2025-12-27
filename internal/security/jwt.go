@@ -8,12 +8,11 @@ import (
 	"challenge-backend-1/internal/entity"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 type TokenProvider interface {
 	GenerateAccessToken(user *entity.User) (string, error)
-	GenerateRefreshToken() (string, error)
+	GenerateRefreshToken(user *entity.User) (string, error)
 	ValidateToken(tokenString string) (*jwt.MapClaims, error)
 }
 
@@ -31,6 +30,7 @@ func (p *JwtTokenProvider) GenerateAccessToken(user *entity.User) (string, error
 	claims := jwt.MapClaims{
 		"sub":   user.ID,
 		"email": user.Email,
+		"type":  "access",
 		"exp":   time.Now().Add(time.Second * 20).Unix(),
 	}
 
@@ -42,8 +42,20 @@ func (p *JwtTokenProvider) GenerateAccessToken(user *entity.User) (string, error
 	return accessToken, nil
 }
 
-func (p *JwtTokenProvider) GenerateRefreshToken() (string, error) {
-	return uuid.New().String(), nil
+func (p *JwtTokenProvider) GenerateRefreshToken(user *entity.User) (string, error) {
+	claims := jwt.MapClaims{
+		"sub":   user.ID,
+		"email": user.Email,
+		"type":  "refresh",
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	refreshToken, err := token.SignedString([]byte(p.secret))
+	if err != nil {
+		return "", err
+	}
+	return refreshToken, nil
 }
 
 func (p *JwtTokenProvider) ValidateToken(tokenString string) (*jwt.MapClaims, error) {

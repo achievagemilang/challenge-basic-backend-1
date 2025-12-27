@@ -7,9 +7,9 @@ type UserResponse struct {
 }
 
 type LoginResponse struct {
-	User         UserResponse `json:"user"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token"`
+	User         *UserResponse `json:"user,omitempty"`
+	AccessToken  string        `json:"access_token,omitempty"`
+	RefreshToken string        `json:"refresh_token,omitempty"`
 }
 
 type LoginUserRequest struct {

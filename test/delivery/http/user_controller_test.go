@@ -128,3 +128,50 @@ func TestLoginWrongPassword(t *testing.T) {
 	assert.False(t, responseBody.Ok)
 	assert.Equal(t, "ERR_INVALID_CREDS", responseBody.Err)
 }
+
+func TestRefresh(t *testing.T) {
+	test.ClearAll()
+	registerUser()
+
+	// 1. Login to get refresh token
+	loginReq := model.LoginUserRequest{
+		Email:    "alice@mail.com",
+		Password: "123456",
+	}
+	bodyJson, _ := json.Marshal(loginReq)
+	reqFn := func(method, url string, body io.Reader) *http.Request {
+		r := httptest.NewRequest(method, url, body)
+		r.Header.Set("Content-Type", "application/json")
+		return r
+	}
+
+	respLogin, _ := test.App.Test(reqFn(http.MethodPost, "/api/v1/session", strings.NewReader(string(bodyJson))))
+	bytesLogin, _ := io.ReadAll(respLogin.Body)
+	var loginBody model.WebResponse[model.LoginResponse]
+	json.Unmarshal(bytesLogin, &loginBody)
+	refreshToken := loginBody.Data.RefreshToken
+
+	// 2. Refresh Success
+	reqRefresh := reqFn(http.MethodPut, "/api/v1/session", nil)
+	reqRefresh.Header.Set("Authorization", "Bearer "+refreshToken)
+
+	resp, err := test.App.Test(reqRefresh)
+	assert.Nil(t, err)
+
+	bytes, err := io.ReadAll(resp.Body)
+	assert.Nil(t, err)
+
+	var responseBody model.WebResponse[model.LoginResponse]
+	err = json.Unmarshal(bytes, &responseBody)
+	assert.Nil(t, err)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.True(t, responseBody.Ok)
+	assert.NotEmpty(t, responseBody.Data.AccessToken)
+
+	// 3. Refresh Invalid Token
+	reqInvalid := reqFn(http.MethodPut, "/api/v1/session", nil)
+	reqInvalid.Header.Set("Authorization", "Bearer invalid-token")
+	respInvalid, _ := test.App.Test(reqInvalid)
+	assert.Equal(t, http.StatusUnauthorized, respInvalid.StatusCode)
+}

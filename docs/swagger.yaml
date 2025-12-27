@@ -83,6 +83,30 @@ paths:
       summary: Login user
       tags:
       - User API
+    put:
+      consumes:
+      - application/json
+      description: Replace expired access_token with the new one
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/challenge-backend-1_internal_model.WebResponse-challenge-backend-1_internal_model_LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/challenge-backend-1_internal_model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/challenge-backend-1_internal_model.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Refresh access token
+      tags:
+      - User API
 securityDefinitions:
   ApiKeyAuth:
     in: header

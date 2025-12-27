@@ -10,6 +10,7 @@ import (
 
 type UserRepository interface {
 	FindByEmail(db *gorm.DB, user *entity.User, email string) error
+	FindById(db *gorm.DB, user *entity.User, id any) error
 }
 
 type UserProducer interface {

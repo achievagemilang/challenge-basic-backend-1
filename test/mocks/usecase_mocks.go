@@ -56,6 +56,20 @@ func (mr *MockUserRepositoryMockRecorder) FindByEmail(db, user, email any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), db, user, email)
 }
 
+// FindById mocks base method.
+func (m *MockUserRepository) FindById(db *gorm.DB, user *entity.User, id any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindById", db, user, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FindById indicates an expected call of FindById.
+func (mr *MockUserRepositoryMockRecorder) FindById(db, user, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockUserRepository)(nil).FindById), db, user, id)
+}
+
 // MockUserProducer is a mock of UserProducer interface.
 type MockUserProducer struct {
 	ctrl     *gomock.Controller

@@ -25,6 +25,7 @@ func (c *RouteConfig) Setup() {
 
 func (c *RouteConfig) SetupGuestRoute(r fiber.Router) {
 	r.Post("/session", c.UserController.Login)
+	r.Put("/session", c.UserController.Refresh)
 
 	c.App.Get("/swagger/*", swagger.HandlerDefault)
 }

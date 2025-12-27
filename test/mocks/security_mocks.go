@@ -57,18 +57,18 @@ func (mr *MockTokenProviderMockRecorder) GenerateAccessToken(user any) *gomock.C
 }
 
 // GenerateRefreshToken mocks base method.
-func (m *MockTokenProvider) GenerateRefreshToken() (string, error) {
+func (m *MockTokenProvider) GenerateRefreshToken(user *entity.User) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateRefreshToken")
+	ret := m.ctrl.Call(m, "GenerateRefreshToken", user)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateRefreshToken indicates an expected call of GenerateRefreshToken.
-func (mr *MockTokenProviderMockRecorder) GenerateRefreshToken() *gomock.Call {
+func (mr *MockTokenProviderMockRecorder) GenerateRefreshToken(user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateRefreshToken", reflect.TypeOf((*MockTokenProvider)(nil).GenerateRefreshToken))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateRefreshToken", reflect.TypeOf((*MockTokenProvider)(nil).GenerateRefreshToken), user)
 }
 
 // ValidateToken mocks base method.

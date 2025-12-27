@@ -15,7 +15,7 @@ func UserToResponse(user *entity.User) *model.UserResponse {
 
 func UserToTokenResponse(user *entity.User, accessToken, refreshToken string) *model.LoginResponse {
 	return &model.LoginResponse{
-		User: model.UserResponse{
+		User: &model.UserResponse{
 			ID:    user.ID,
 			Email: user.Email,
 			Name:  user.Name,
