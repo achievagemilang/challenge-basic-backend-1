@@ -1,0 +1,43 @@
+package messaging
+
+import (
+	"encoding/json"
+
+	"challenge-backend-1/internal/model"
+
+	"github.com/IBM/sarama"
+	"go.uber.org/zap"
+)
+
+type Producer[T model.Event] struct {
+	Producer sarama.SyncProducer
+	Topic    string
+	Log      *zap.SugaredLogger
+}
+
+func (p *Producer[T]) GetTopic() *string {
+	return &p.Topic
+}
+
+func (p *Producer[T]) Send(event T) error {
+	value, err := json.Marshal(event)
+	if err != nil {
+		p.Log.Errorw("failed to marshal event", "error", err)
+		return err
+	}
+
+	message := &sarama.ProducerMessage{
+		Topic: p.Topic,
+		Key:   sarama.StringEncoder(event.GetId()),
+		Value: sarama.ByteEncoder(value),
+	}
+
+	partition, offset, err := p.Producer.SendMessage(message)
+	if err != nil {
+		p.Log.Errorw("failed to produce message", "error", err)
+		return err
+	}
+
+	p.Log.Debugf("Message sent to topic %s, partition %d, offset %d", p.Topic, partition, offset)
+	return nil
+}
