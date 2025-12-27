@@ -39,6 +39,14 @@ jobs:
           # Replace port 54320 with 5432 for CI
           sed -i 's/54320/5432/g' config.json
 
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+      - name: Run Migrations
+        run: migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/challenge_backend_db?sslmode=disable" up
+
       - name: Build
         run: go build -v ./...
 
