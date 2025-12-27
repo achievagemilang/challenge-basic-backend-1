@@ -4,9 +4,7 @@ import (
 	"context"
 
 	"challenge-backend-1/internal/entity"
-	"challenge-backend-1/internal/gateway/messaging"
 	"challenge-backend-1/internal/model"
-	"challenge-backend-1/internal/repository"
 	"challenge-backend-1/internal/security"
 
 	"github.com/go-playground/validator/v10"
@@ -20,13 +18,13 @@ type UserUseCase struct {
 	DB             *gorm.DB
 	Log            *zap.SugaredLogger
 	Validate       *validator.Validate
-	UserRepository *repository.UserRepository
-	UserProducer   *messaging.UserProducer
+	UserRepository UserRepository
+	UserProducer   UserProducer
 	TokenProvider  security.TokenProvider
 }
 
 func NewUserUseCase(db *gorm.DB, logger *zap.SugaredLogger, validate *validator.Validate,
-	userRepository *repository.UserRepository, userProducer *messaging.UserProducer,
+	userRepository UserRepository, userProducer UserProducer,
 	tokenProvider security.TokenProvider,
 ) *UserUseCase {
 	return &UserUseCase{

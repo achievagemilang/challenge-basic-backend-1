@@ -10,30 +10,30 @@ import (
 	"gorm.io/gorm"
 )
 
-var app *fiber.App
+var App *fiber.App
 
-var db *gorm.DB
+var Db *gorm.DB
 
-var viperConfig *viper.Viper
+var ViperConfig *viper.Viper
 
-var log *zap.SugaredLogger
+var Log *zap.SugaredLogger
 
-var validate *validator.Validate
+var Validate *validator.Validate
 
 func init() {
-	viperConfig = config.NewViper()
-	log = config.NewLogger(viperConfig)
-	validate = config.NewValidator(viperConfig)
-	app = config.NewFiber(viperConfig)
-	db = config.NewDatabase(viperConfig, log)
-	producer := config.NewKafkaProducer(viperConfig, log)
+	ViperConfig = config.NewViper()
+	Log = config.NewLogger(ViperConfig)
+	Validate = config.NewValidator(ViperConfig)
+	App = config.NewFiber(ViperConfig)
+	Db = config.NewDatabase(ViperConfig, Log)
+	producer := config.NewKafkaProducer(ViperConfig, Log)
 
 	config.Bootstrap(&config.BootstrapConfig{
-		DB:       db,
-		App:      app,
-		Log:      log,
-		Validate: validate,
-		Config:   viperConfig,
+		DB:       Db,
+		App:      App,
+		Log:      Log,
+		Validate: Validate,
+		Config:   ViperConfig,
 		Producer: producer,
 	})
 }

@@ -17,6 +17,9 @@ func NewViper() *viper.Viper {
 
 	config.SetConfigName("config")
 	config.SetConfigType("json")
+	config.AddConfigPath("./../../../../")
+	config.AddConfigPath("./../../../")
+	config.AddConfigPath("./../../")
 	config.AddConfigPath("./../")
 	config.AddConfigPath("./")
 

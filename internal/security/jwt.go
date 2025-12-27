@@ -1,3 +1,4 @@
+//go:generate mockgen -source=jwt.go -destination=../../test/mocks/security_mocks.go -package=mocks
 package security
 
 import (

@@ -11,6 +11,7 @@ import (
 
 	"challenge-backend-1/internal/entity"
 	"challenge-backend-1/internal/model"
+	"challenge-backend-1/test"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
@@ -25,12 +26,12 @@ func registerUser() *entity.User {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	db.Create(user)
+	test.Db.Create(user)
 	return user
 }
 
 func TestLogin(t *testing.T) {
-	ClearAll()
+	test.ClearAll()
 
 	user := registerUser()
 
@@ -46,7 +47,7 @@ func TestLogin(t *testing.T) {
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 
-	response, err := app.Test(request)
+	response, err := test.App.Test(request)
 	assert.Nil(t, err)
 
 	bytes, err := io.ReadAll(response.Body)
@@ -65,7 +66,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLoginWrongEmail(t *testing.T) {
-	ClearAll()
+	test.ClearAll()
 
 	registerUser()
 
@@ -81,7 +82,7 @@ func TestLoginWrongEmail(t *testing.T) {
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 
-	response, err := app.Test(request)
+	response, err := test.App.Test(request)
 	assert.Nil(t, err)
 
 	bytes, err := io.ReadAll(response.Body)
@@ -97,7 +98,7 @@ func TestLoginWrongEmail(t *testing.T) {
 }
 
 func TestLoginWrongPassword(t *testing.T) {
-	ClearAll()
+	test.ClearAll()
 
 	registerUser()
 
@@ -113,7 +114,7 @@ func TestLoginWrongPassword(t *testing.T) {
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 
-	response, err := app.Test(request)
+	response, err := test.App.Test(request)
 	assert.Nil(t, err)
 
 	bytes, err := io.ReadAll(response.Body)
