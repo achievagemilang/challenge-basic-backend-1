@@ -1,4 +1,4 @@
-.PHONY: run run-worker test dev docker-up docker-down docker-down-v swag migrate-up migrate-down migrate-reset migrate-create test-coverage
+.PHONY: run run-worker test dev docker-up docker-down docker-down-v swag migrate-up migrate-down migrate-reset migrate-create test-coverage lint lint-fix
 
 # Run the web application
 run:
@@ -49,3 +49,11 @@ migrate-reset:
 # Usage: make migrate-create name=create_table_users
 migrate-create:
 	migrate create -ext sql -dir db/migrations $(name)
+
+# Linting
+lint:
+	golangci-lint run
+
+lint-fix:
+	golangci-lint run --fix
+
