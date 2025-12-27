@@ -7,16 +7,21 @@ import (
 
 func UserToResponse(user *entity.User) *model.UserResponse {
 	return &model.UserResponse{
-		ID:        user.ID,
-		Name:      user.Name,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:    user.ID,
+		Email: user.Email,
+		Name:  user.Name,
 	}
 }
 
-func UserToTokenResponse(user *entity.User) *model.UserResponse {
-	return &model.UserResponse{
-		Token: user.Token,
+func UserToTokenResponse(user *entity.User, accessToken, refreshToken string) *model.LoginResponse {
+	return &model.LoginResponse{
+		User: model.UserResponse{
+			ID:    user.ID,
+			Email: user.Email,
+			Name:  user.Name,
+		},
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 }
 
@@ -24,7 +29,7 @@ func UserToEvent(user *entity.User) *model.UserEvent {
 	return &model.UserEvent{
 		ID:        user.ID,
 		Name:      user.Name,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		CreatedAt: user.CreatedAt.UnixMilli(),
+		UpdatedAt: user.UpdatedAt.UnixMilli(),
 	}
 }

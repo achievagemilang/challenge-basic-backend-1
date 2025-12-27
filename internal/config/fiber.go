@@ -33,10 +33,18 @@ func NewErrorHandler() fiber.ErrorHandler {
 		}
 
 		if code == fiber.StatusUnauthorized {
+			errCode := "ERR_INVALID_ACCESS_TOKEN"
+			errMsg := "invalid access token"
+
+			if err.Error() == "incorrect username or password" {
+				errCode = "ERR_INVALID_CREDS"
+				errMsg = "incorrect username or password"
+			}
+
 			return ctx.Status(code).JSON(model.ErrorResponse{
 				Ok:  false,
-				Err: "ERR_INVALID_ACCESS_TOKEN",
-				Msg: "invalid access token",
+				Err: errCode,
+				Msg: errMsg,
 			})
 		}
 

@@ -2,7 +2,6 @@ package config
 
 import (
 	"challenge-backend-1/internal/delivery/http"
-	"challenge-backend-1/internal/delivery/http/middleware"
 	"challenge-backend-1/internal/delivery/http/route"
 	"challenge-backend-1/internal/gateway/messaging"
 	"challenge-backend-1/internal/repository"
@@ -37,18 +36,16 @@ func Bootstrap(config *BootstrapConfig) {
 	}
 
 	// setup use cases
-	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, userProducer)
+	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, userProducer, config.Config)
 
 	// setup controller
 	userController := http.NewUserController(userUseCase, config.Log)
 
-	// setup middleware
-	authMiddleware := middleware.NewAuth(userUseCase)
-
 	routeConfig := route.RouteConfig{
 		App:            config.App,
+		Config:         config.Config,
+		Log:            config.Log,
 		UserController: userController,
-		AuthMiddleware: authMiddleware,
 	}
 	routeConfig.Setup()
 }
