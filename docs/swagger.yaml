@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   challenge-backend-1_internal_model.ErrorResponse:
     properties:
@@ -53,7 +53,7 @@ info:
   title: Challenge Backend 1
   version: 1.0.0
 paths:
-  /api/session:
+  /session:
     post:
       consumes:
       - application/json

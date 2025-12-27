@@ -43,7 +43,7 @@ func TestLogin(t *testing.T) {
 	bodyJson, err := json.Marshal(requestBody)
 	assert.Nil(t, err)
 
-	request := httptest.NewRequest(http.MethodPost, "/api/session", strings.NewReader(string(bodyJson)))
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/session", strings.NewReader(string(bodyJson)))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 
@@ -78,7 +78,7 @@ func TestLoginWrongEmail(t *testing.T) {
 	bodyJson, err := json.Marshal(requestBody)
 	assert.Nil(t, err)
 
-	request := httptest.NewRequest(http.MethodPost, "/api/session", strings.NewReader(string(bodyJson)))
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/session", strings.NewReader(string(bodyJson)))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 
@@ -110,7 +110,7 @@ func TestLoginWrongPassword(t *testing.T) {
 	bodyJson, err := json.Marshal(requestBody)
 	assert.Nil(t, err)
 
-	request := httptest.NewRequest(http.MethodPost, "/api/session", strings.NewReader(string(bodyJson)))
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/session", strings.NewReader(string(bodyJson)))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 

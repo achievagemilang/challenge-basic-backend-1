@@ -30,7 +30,7 @@ func NewUserController(useCase *usecase.UserUseCase, logger *zap.SugaredLogger) 
 // @Success 200 {object} model.WebResponse[model.LoginResponse]
 // @Failure 401 {object} model.ErrorResponse
 // @Failure 500 {object} model.ErrorResponse
-// @Router /api/session [post]
+// @Router /session [post]
 func (c *UserController) Login(ctx *fiber.Ctx) error {
 	request := new(model.LoginUserRequest)
 	err := ctx.BodyParser(request)

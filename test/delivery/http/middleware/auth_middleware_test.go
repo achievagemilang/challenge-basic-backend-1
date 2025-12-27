@@ -25,7 +25,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	app := fiber.New()
 	app.Use(middleware.NewAuthMiddleware(mockTokenProvider, logger))
-	app.Get("/test", func(c *fiber.Ctx) error {
+	app.Get("/v1/test", func(c *fiber.Ctx) error {
 		auth := middleware.GetUser(c)
 		return c.JSON(auth)
 	})
@@ -37,7 +37,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 		mockTokenProvider.EXPECT().ValidateToken("valid_token").Return(&claims, nil)
 
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest("GET", "/v1/test", nil)
 		req.Header.Set("Authorization", "Bearer valid_token")
 
 		resp, err := app.Test(req)
@@ -46,7 +46,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("MissingHeader", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest("GET", "/v1/test", nil)
 
 		resp, err := app.Test(req)
 		assert.NoError(t, err)
@@ -54,7 +54,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("InvalidFormat", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest("GET", "/v1/test", nil)
 		req.Header.Set("Authorization", "InvalidFormat")
 
 		resp, err := app.Test(req)
@@ -65,7 +65,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("InvalidToken", func(t *testing.T) {
 		mockTokenProvider.EXPECT().ValidateToken("invalid_token").Return(nil, errors.New("invalid token"))
 
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest("GET", "/v1/test", nil)
 		req.Header.Set("Authorization", "Bearer invalid_token")
 
 		resp, err := app.Test(req)
@@ -80,7 +80,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 		mockTokenProvider.EXPECT().ValidateToken("valid_token").Return(&claims, nil)
 
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest("GET", "/v1/test", nil)
 		req.Header.Set("Authorization", "Bearer valid_token")
 
 		resp, err := app.Test(req)

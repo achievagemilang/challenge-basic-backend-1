@@ -18,16 +18,17 @@ type RouteConfig struct {
 }
 
 func (c *RouteConfig) Setup() {
-	c.SetupGuestRoute()
-	c.SetupAuthRoute()
+	v1 := c.App.Group("/api/v1")
+	c.SetupGuestRoute(v1)
+	c.SetupAuthRoute(v1)
 }
 
-func (c *RouteConfig) SetupGuestRoute() {
-	c.App.Post("/api/session", c.UserController.Login)
+func (c *RouteConfig) SetupGuestRoute(r fiber.Router) {
+	r.Post("/session", c.UserController.Login)
 
 	c.App.Get("/swagger/*", swagger.HandlerDefault)
 }
 
-func (c *RouteConfig) SetupAuthRoute() {
-	c.App.Use(c.AuthMiddleware)
+func (c *RouteConfig) SetupAuthRoute(r fiber.Router) {
+	r.Use(c.AuthMiddleware)
 }

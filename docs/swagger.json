@@ -7,9 +7,9 @@
         "version": "1.0.0"
     },
     "host": "localhost:8080",
-    "basePath": "/",
+    "basePath": "/api/v1",
     "paths": {
-        "/api/session": {
+        "/session": {
             "post": {
                 "description": "Login user",
                 "consumes": [
