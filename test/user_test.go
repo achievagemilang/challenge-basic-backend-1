@@ -73,7 +73,7 @@ func TestRegisterError(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestRegisterDuplicate(t *testing.T) {
@@ -104,7 +104,7 @@ func TestRegisterDuplicate(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusConflict, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestLogin(t *testing.T) {
@@ -168,7 +168,7 @@ func TestLoginWrongUsername(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestLoginWrongPassword(t *testing.T) {
@@ -198,7 +198,7 @@ func TestLoginWrongPassword(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestLogout(t *testing.T) {
@@ -248,7 +248,7 @@ func TestLogoutWrongAuthorization(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestGetCurrentUser(t *testing.T) {
@@ -301,7 +301,7 @@ func TestGetCurrentUserFailed(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
 
 func TestUpdateUserName(t *testing.T) {
@@ -411,5 +411,5 @@ func TestUpdateFailed(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	assert.NotNil(t, responseBody.Errors)
+	assert.NotNil(t, responseBody.Err)
 }
