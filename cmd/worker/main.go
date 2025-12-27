@@ -26,17 +26,11 @@ func main() {
 	go RunUserConsumer(logger, viperConfig, ctx, wg)
 
 	terminateSignals := make(chan os.Signal, 1)
-	signal.Notify(terminateSignals, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+	signal.Notify(terminateSignals, syscall.SIGINT, syscall.SIGTERM)
 
-	stop := false
-	for !stop {
-		select {
-		case s := <-terminateSignals:
-			logger.Info("Got one of stop signals, shutting down worker gracefully, SIGNAL NAME :", s)
-			cancel()
-			stop = true
-		}
-	}
+	s := <-terminateSignals
+	logger.Info("Got one of stop signals, shutting down worker gracefully, SIGNAL NAME :", s)
+	cancel()
 
 	wg.Wait()
 	logger.Info("Worker exited")
