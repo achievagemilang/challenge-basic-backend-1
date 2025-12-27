@@ -4,14 +4,13 @@ import (
 	"strings"
 
 	"challenge-backend-1/internal/model"
+	"challenge-backend-1/internal/security"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
-func NewAuthMiddleware(config *viper.Viper, log *zap.SugaredLogger) fiber.Handler {
+func NewAuthMiddleware(tokenProvider security.TokenProvider, log *zap.SugaredLogger) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		authHeader := ctx.Get("Authorization")
 		if authHeader == "" {
@@ -24,25 +23,14 @@ func NewAuthMiddleware(config *viper.Viper, log *zap.SugaredLogger) fiber.Handle
 		}
 		tokenString := parts[1]
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fiber.ErrUnauthorized
-			}
-			return []byte(config.GetString("jwt.secret")), nil
-		})
-
-		if err != nil || !token.Valid {
+		claims, err := tokenProvider.ValidateToken(tokenString)
+		if err != nil {
 			log.Warnf("Invalid token: %v", err)
 			return fiber.ErrUnauthorized
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			return fiber.ErrUnauthorized
-		}
-
 		var userID int64
-		switch v := claims["sub"].(type) {
+		switch v := (*claims)["sub"].(type) {
 		case float64:
 			userID = int64(v)
 		case string:

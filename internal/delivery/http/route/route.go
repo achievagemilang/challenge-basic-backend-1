@@ -2,21 +2,19 @@ package route
 
 import (
 	"challenge-backend-1/internal/delivery/http"
-	"challenge-backend-1/internal/delivery/http/middleware"
 
 	_ "challenge-backend-1/docs"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 type RouteConfig struct {
 	App            *fiber.App
 	UserController *http.UserController
-	Config         *viper.Viper
 	Log            *zap.SugaredLogger
+	AuthMiddleware fiber.Handler
 }
 
 func (c *RouteConfig) Setup() {
@@ -31,5 +29,5 @@ func (c *RouteConfig) SetupGuestRoute() {
 }
 
 func (c *RouteConfig) SetupAuthRoute() {
-	c.App.Use(middleware.NewAuthMiddleware(c.Config, c.Log))
+	c.App.Use(c.AuthMiddleware)
 }

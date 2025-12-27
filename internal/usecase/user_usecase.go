@@ -2,18 +2,15 @@ package usecase
 
 import (
 	"context"
-	"time"
 
 	"challenge-backend-1/internal/entity"
 	"challenge-backend-1/internal/gateway/messaging"
 	"challenge-backend-1/internal/model"
 	"challenge-backend-1/internal/repository"
+	"challenge-backend-1/internal/security"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -25,11 +22,12 @@ type UserUseCase struct {
 	Validate       *validator.Validate
 	UserRepository *repository.UserRepository
 	UserProducer   *messaging.UserProducer
-	Config         *viper.Viper
+	TokenProvider  security.TokenProvider
 }
 
 func NewUserUseCase(db *gorm.DB, logger *zap.SugaredLogger, validate *validator.Validate,
-	userRepository *repository.UserRepository, userProducer *messaging.UserProducer, config *viper.Viper,
+	userRepository *repository.UserRepository, userProducer *messaging.UserProducer,
+	tokenProvider security.TokenProvider,
 ) *UserUseCase {
 	return &UserUseCase{
 		DB:             db,
@@ -37,7 +35,7 @@ func NewUserUseCase(db *gorm.DB, logger *zap.SugaredLogger, validate *validator.
 		Validate:       validate,
 		UserRepository: userRepository,
 		UserProducer:   userProducer,
-		Config:         config,
+		TokenProvider:  tokenProvider,
 	}
 }
 
@@ -61,19 +59,17 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "incorrect username or password")
 	}
 
-	claims := jwt.MapClaims{
-		"sub":   user.ID,
-		"email": user.Email,
-		"exp":   time.Now().Add(time.Second * 20).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	accessToken, err := token.SignedString([]byte(c.Config.GetString("jwt.secret")))
+	accessToken, err := c.TokenProvider.GenerateAccessToken(user)
 	if err != nil {
 		c.Log.Warnf("Failed to generate access token : %+v", err)
 		return nil, fiber.ErrInternalServerError
 	}
 
-	refreshToken := uuid.New().String()
+	refreshToken, err := c.TokenProvider.GenerateRefreshToken()
+	if err != nil {
+		c.Log.Warnf("Failed to generate refresh token : %+v", err)
+		return nil, fiber.ErrInternalServerError
+	}
 
 	if err := tx.Commit().Error; err != nil {
 		c.Log.Warnf("Failed commit transaction : %+v", err)
